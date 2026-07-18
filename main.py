@@ -77,7 +77,9 @@ def verify_jwt(token: str, secret: str):
     color = STATUS_COLORS[result["status"]]
 
     console.print(
-        f"\n[{color}]{result['status']}[/{color}] {result['message']}"
+        f"[{color}]{check['status']:<5}[/{color}] "
+        f"{check['name']:<15} "
+        f"{check['message']}"
     )
 
     if result["status"] == "PASS":
