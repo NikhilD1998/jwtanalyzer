@@ -6,6 +6,7 @@ from rich.json import JSON
 from analyzer.parser import JWTParser
 from analyzer.verifier import JWTVerifier
 from analyzer.analyzer import JWTAnalyzer
+from analyzer.renderer import Renderer
 
 console = Console()
 
@@ -17,55 +18,28 @@ STATUS_COLORS = {
 
 
 def decode_jwt(token: str):
-    """
-    Decode a JWT without performing security analysis.
-    """
+
     try:
+
         header, payload = JWTParser.decode(token)
 
-        console.print("\n[bold cyan]Header[/bold cyan]")
-        console.print(JSON.from_data(header))
-
-        console.print("\n[bold green]Payload[/bold green]")
-        console.print(JSON.from_data(payload))
+        Renderer().render_header(header)
+        Renderer().render_payload(payload)
 
     except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] {e}")
+        console.print(f"[red]{e}[/red]")
 
 
 def analyze_jwt(token: str):
-    """
-    Run all security checks on a JWT.
-    """
+
     try:
+
         result = JWTAnalyzer.analyze(token)
 
-        console.print("\n[bold cyan]Header[/bold cyan]")
-        console.print(JSON.from_data(result["header"]))
-
-        console.print("\n[bold green]Payload[/bold green]")
-        console.print(JSON.from_data(result["payload"]))
-
-        console.print("\n[bold yellow]Security Checks[/bold yellow]")
-
-        for check in result["checks"]:
-            color = STATUS_COLORS[check["status"]]
-
-            console.print(
-                f"[{color}]{check['status']:<5}[/{color}] {check['message']}"
-            )
-
-        if "security" in result:
-            console.print("\n[bold magenta]Security Score[/bold magenta]")
-            console.print(
-                f"Score : {result['security']['score']}/100"
-            )
-            console.print(
-                f"Risk  : {result['security']['risk']}"
-            )
+        Renderer().render(result)
 
     except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] {e}")
+        console.print(f"[red]{e}[/red]")
 
 
 def verify_jwt(token: str, secret: str):
