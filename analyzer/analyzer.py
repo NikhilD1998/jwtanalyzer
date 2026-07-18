@@ -10,6 +10,13 @@ class JWTAnalyzer:
 
         checks = [
             JWTChecks.check_algorithm(header),
+            JWTChecks.check_type(header),
+
+            JWTChecks.check_subject(payload),
+            JWTChecks.check_issuer(payload),
+            JWTChecks.check_audience(payload),
+            JWTChecks.check_jti(payload),
+
             JWTChecks.check_exp(payload),
             JWTChecks.check_iat(payload),
             JWTChecks.check_nbf(payload),

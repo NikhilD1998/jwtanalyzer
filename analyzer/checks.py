@@ -138,3 +138,117 @@ class JWTChecks:
             "Token is active.",
             "No action required."
         )
+    
+    @staticmethod
+    def check_subject(payload: dict):
+        sub = payload.get("sub")
+
+        if not sub:
+            return JWTChecks._result(
+                "Subject",
+                "WARN",
+                "MEDIUM",
+                "sub claim missing.",
+                "Include a subject identifier."
+            )
+
+        return JWTChecks._result(
+            "Subject",
+            "PASS",
+            "INFO",
+            f"Subject: {sub}",
+            "No action required."
+        )
+    
+    @staticmethod
+    def check_issuer(payload: dict):
+        iss = payload.get("iss")
+
+        if not iss:
+            return JWTChecks._result(
+                "Issuer",
+                "WARN",
+                "MEDIUM",
+                "iss claim missing.",
+                "Specify the token issuer."
+            )
+
+        return JWTChecks._result(
+            "Issuer",
+            "PASS",
+            "INFO",
+            f"Issuer: {iss}",
+            "No action required."
+        )
+    
+    @staticmethod
+    def check_audience(payload: dict):
+        aud = payload.get("aud")
+
+        if not aud:
+            return JWTChecks._result(
+                "Audience",
+                "WARN",
+                "MEDIUM",
+                "aud claim missing.",
+                "Restrict the token to an intended audience."
+            )
+
+        return JWTChecks._result(
+            "Audience",
+            "PASS",
+            "INFO",
+            f"Audience: {aud}",
+            "No action required."
+        )
+    
+    @staticmethod
+    def check_jti(payload: dict):
+        jti = payload.get("jti")
+
+        if not jti:
+            return JWTChecks._result(
+                "JWT ID",
+                "WARN",
+                "LOW",
+                "jti claim missing.",
+                "Include a unique token identifier to help prevent replay attacks."
+            )
+
+        return JWTChecks._result(
+            "JWT ID",
+            "PASS",
+            "INFO",
+            f"JWT ID: {jti}",
+            "No action required."
+        )
+    
+    @staticmethod
+    def check_type(header: dict):
+        typ = header.get("typ")
+
+        if typ is None:
+            return JWTChecks._result(
+                "Token Type",
+                "WARN",
+                "LOW",
+                "typ header missing.",
+                "Include the token type."
+            )
+
+        if typ.upper() != "JWT":
+            return JWTChecks._result(
+                "Token Type",
+                "FAIL",
+                "MEDIUM",
+                f"Unexpected type: {typ}",
+                "Use typ='JWT'."
+            )
+
+        return JWTChecks._result(
+            "Token Type",
+            "PASS",
+            "INFO",
+            "Token type is JWT.",
+            "No action required."
+        )
