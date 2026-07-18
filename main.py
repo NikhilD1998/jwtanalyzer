@@ -1,11 +1,12 @@
-import typer
+import argparse
+
 from rich.console import Console
 from rich.json import JSON
 
 from analyzer.parser import JWTParser
 from analyzer.checks import JWTChecks
+from analyzer.verifier import JWTVerifier
 
-app = typer.Typer()
 console = Console()
 
 STATUS_COLORS = {
@@ -15,17 +16,7 @@ STATUS_COLORS = {
 }
 
 
-decode_app = typer.Typer()
-verify_app = typer.Typer()
-analyze_app = typer.Typer()
-
-app.add_typer(decode_app, name="decode")
-app.add_typer(verify_app, name="verify")
-app.add_typer(analyze_app, name="analyze")
-
-
-@decode_app.callback(invoke_without_command=True)
-def decode(token: str):
+def decode_jwt(token: str):
     try:
         header, payload = JWTParser.decode(token)
 
@@ -45,13 +36,75 @@ def decode(token: str):
         ]
 
         for result in checks:
+            color = STATUS_COLORS[result["status"]]
+
             console.print(
-                f"[{STATUS_COLORS[result['status']]}]{result['status']:5}[/{STATUS_COLORS[result['status']]}] {result['message']}"
+                f"[{color}]{result['status']:<5}[/{color}] {result['message']}"
             )
 
     except Exception as e:
-        console.print(f"[red]Error:[/red] {e}")
+        console.print(f"[bold red]Error:[/bold red] {e}")
+
+
+def verify_jwt(token: str, secret: str):
+    result = JWTVerifier.verify_hs256(token, secret)
+
+    color = STATUS_COLORS[result["status"]]
+
+    console.print(
+        f"\n[{color}]{result['status']}[/{color}] {result['message']}"
+    )
+
+    if result["status"] == "PASS":
+        console.print("\n[bold green]Verified Payload[/bold green]")
+        console.print(JSON.from_data(result["payload"]))
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="jwt-analyzer",
+        description="JWT Analyzer CLI"
+    )
+
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True
+    )
+
+    # Decode Command
+    decode_parser = subparsers.add_parser(
+        "decode",
+        help="Decode a JWT"
+    )
+    decode_parser.add_argument(
+        "token",
+        help="JWT Token"
+    )
+
+    # Verify Command
+    verify_parser = subparsers.add_parser(
+        "verify",
+        help="Verify JWT Signature"
+    )
+    verify_parser.add_argument(
+        "token",
+        help="JWT Token"
+    )
+    verify_parser.add_argument(
+        "--secret",
+        "-s",
+        required=True,
+        help="Secret Key"
+    )
+
+    args = parser.parse_args()
+
+    if args.command == "decode":
+        decode_jwt(args.token)
+
+    elif args.command == "verify":
+        verify_jwt(args.token, args.secret)
 
 
 if __name__ == "__main__":
-    app()
+    main()
