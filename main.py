@@ -4,8 +4,8 @@ from rich.console import Console
 from rich.json import JSON
 
 from analyzer.parser import JWTParser
-from analyzer.checks import JWTChecks
 from analyzer.verifier import JWTVerifier
+from analyzer.analyzer import JWTAnalyzer
 
 console = Console()
 
@@ -17,6 +17,9 @@ STATUS_COLORS = {
 
 
 def decode_jwt(token: str):
+    """
+    Decode a JWT without performing security analysis.
+    """
     try:
         header, payload = JWTParser.decode(token)
 
@@ -26,20 +29,39 @@ def decode_jwt(token: str):
         console.print("\n[bold green]Payload[/bold green]")
         console.print(JSON.from_data(payload))
 
+    except Exception as e:
+        console.print(f"[bold red]Error:[/bold red] {e}")
+
+
+def analyze_jwt(token: str):
+    """
+    Run all security checks on a JWT.
+    """
+    try:
+        result = JWTAnalyzer.analyze(token)
+
+        console.print("\n[bold cyan]Header[/bold cyan]")
+        console.print(JSON.from_data(result["header"]))
+
+        console.print("\n[bold green]Payload[/bold green]")
+        console.print(JSON.from_data(result["payload"]))
+
         console.print("\n[bold yellow]Security Checks[/bold yellow]")
 
-        checks = [
-            JWTChecks.check_algorithm(header),
-            JWTChecks.check_exp(payload),
-            JWTChecks.check_iat(payload),
-            JWTChecks.check_nbf(payload),
-        ]
-
-        for result in checks:
-            color = STATUS_COLORS[result["status"]]
+        for check in result["checks"]:
+            color = STATUS_COLORS[check["status"]]
 
             console.print(
-                f"[{color}]{result['status']:<5}[/{color}] {result['message']}"
+                f"[{color}]{check['status']:<5}[/{color}] {check['message']}"
+            )
+
+        if "security" in result:
+            console.print("\n[bold magenta]Security Score[/bold magenta]")
+            console.print(
+                f"Score : {result['security']['score']}/100"
+            )
+            console.print(
+                f"Risk  : {result['security']['risk']}"
             )
 
     except Exception as e:
@@ -47,6 +69,9 @@ def decode_jwt(token: str):
 
 
 def verify_jwt(token: str, secret: str):
+    """
+    Verify JWT signature using an HS256 secret.
+    """
     result = JWTVerifier.verify_hs256(token, secret)
 
     color = STATUS_COLORS[result["status"]]
@@ -71,7 +96,7 @@ def main():
         required=True
     )
 
-    # Decode Command
+    # Decode
     decode_parser = subparsers.add_parser(
         "decode",
         help="Decode a JWT"
@@ -81,7 +106,17 @@ def main():
         help="JWT Token"
     )
 
-    # Verify Command
+    # Analyze
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="Analyze JWT security"
+    )
+    analyze_parser.add_argument(
+        "token",
+        help="JWT Token"
+    )
+
+    # Verify
     verify_parser = subparsers.add_parser(
         "verify",
         help="Verify JWT Signature"
@@ -101,6 +136,9 @@ def main():
 
     if args.command == "decode":
         decode_jwt(args.token)
+
+    elif args.command == "analyze":
+        analyze_jwt(args.token)
 
     elif args.command == "verify":
         verify_jwt(args.token, args.secret)
