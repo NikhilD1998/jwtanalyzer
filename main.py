@@ -9,6 +9,8 @@ from analyzer.analyzer import JWTAnalyzer
 from analyzer.renderer import Renderer
 from analyzer.report import ReportGenerator
 from analyzer.utils import FileUtils
+from pathlib import Path
+
 
 console = Console()
 
@@ -23,7 +25,7 @@ def decode_jwt(token: str):
 
     try:
 
-        header, payload = JWTParser.decode(token)
+        header, payload, _ = JWTParser.decode(token)
 
         Renderer().render_header(header)
         Renderer().render_payload(payload)
@@ -154,10 +156,10 @@ def main():
         help="Read JWT from file"
     )
     verify_parser.add_argument(
-        "--secret",
-        "-s",
+        "--key",
+        "-k",
         required=True,
-        help="Secret Key"
+        help="Secret or PEM key file"
     )
 
     args = parser.parse_args()
@@ -180,7 +182,14 @@ def main():
         )
 
     elif args.command == "verify":
-        verify_jwt(token, args.secret)
+        path = Path(args.key)
+
+        if path.exists():
+            key = path.read_text(encoding="utf-8")
+        else:
+            key = args.key
+
+        verify_jwt(token, key)
 
 
 if __name__ == "__main__":

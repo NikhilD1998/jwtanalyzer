@@ -26,5 +26,6 @@ class JWTParser:
 
         header = cls._base64url_decode(parts[0])
         payload = cls._base64url_decode(parts[1])
+        signature = parts[2]
 
-        return header, payload
+        return header, payload, signature

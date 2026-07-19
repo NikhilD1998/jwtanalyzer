@@ -6,17 +6,16 @@ from analyzer.parser import JWTParser
 class JWTVerifier:
 
     SUPPORTED_ALGORITHMS = {
-        "HS256": "symmetric",
-        "HS384": "symmetric",
-        "HS512": "symmetric",
-
-        "RS256": "asymmetric",
-        "RS384": "asymmetric",
-        "RS512": "asymmetric",
+        "HS256",
+        "HS384",
+        "HS512",
+        "RS256",
+        "RS384",
+        "RS512",
     }
 
     @staticmethod
-    def verify(token: str, key: str) -> dict:
+    def verify(token: str, key: str):
 
         header, _, _ = JWTParser.decode(token)
 

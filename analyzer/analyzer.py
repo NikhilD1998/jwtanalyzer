@@ -8,7 +8,7 @@ class JWTAnalyzer:
     @staticmethod
     def analyze(token: str):
 
-        header, payload = JWTParser.decode(token)
+        header, payload, _ = JWTParser.decode(token)
 
         checks = [
 
