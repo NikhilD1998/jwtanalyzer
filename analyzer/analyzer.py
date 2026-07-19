@@ -1,7 +1,7 @@
 from analyzer.parser import JWTParser
 from analyzer.checks import JWTChecks
 from analyzer.scorer import JWTScorer
-
+from analyzer.recommendations import RecommendationEngine
 
 class JWTAnalyzer:
 
@@ -33,9 +33,14 @@ class JWTAnalyzer:
 
         security = JWTScorer.calculate(checks)
 
+        recommendations = RecommendationEngine.generate(
+            security["findings"]
+        )
+
         return {
             "header": header,
             "payload": payload,
             "checks": checks,
-            "security": security
+            "security": security,
+            "recommendations": recommendations
         }

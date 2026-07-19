@@ -3,7 +3,6 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.json import JSON
 
-
 class Renderer:
 
     def __init__(self):
@@ -16,7 +15,7 @@ class Renderer:
         self.render_checks(result["checks"])
         self.render_score(result["security"])
         self.render_findings(result["security"]["findings"])
-
+        self.render_recommendations(result["recommendations"])
 
     def render_header(self, header):
 
@@ -108,6 +107,7 @@ class Renderer:
         table.add_column("Severity", style="red")
         table.add_column("Issue")
         table.add_column("Recommendation", style="green")
+        
 
         for finding in findings:
 
@@ -119,3 +119,21 @@ class Renderer:
             )
 
         self.console.print(table)
+
+    def render_recommendations(self, recommendations):
+
+        if not recommendations:
+            return
+
+        body = ""
+
+        for rec in recommendations:
+            body += f"• {rec}\n"
+
+        self.console.print(
+            Panel.fit(
+                body.rstrip(),
+                title="Recommendations",
+                border_style="green"
+            )
+        )
