@@ -20,6 +20,11 @@ class JWTAnalyzer:
             JWTChecks.check_exp(payload),
             JWTChecks.check_iat(payload),
             JWTChecks.check_nbf(payload),
+
+            JWTChecks.check_token_size(token),
+            JWTChecks.check_sensitive_claims(payload),
+            JWTChecks.check_privileged_token(payload),
+            JWTChecks.check_token_lifetime(payload),
         ]
 
         return {

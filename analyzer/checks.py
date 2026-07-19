@@ -252,3 +252,141 @@ class JWTChecks:
             "Token type is JWT.",
             "No action required."
         )
+    
+    @staticmethod
+    def check_sensitive_claims(payload: dict):
+        sensitive_claims = {
+            "password",
+            "passwd",
+            "secret",
+            "api_key",
+            "apikey",
+            "access_token",
+            "refresh_token",
+            "credit_card",
+            "card_number",
+            "ssn",
+            "private_key",
+            "token"
+        }
+
+        found = [
+            key for key in payload.keys()
+            if key.lower() in sensitive_claims
+        ]
+
+        if found:
+            return JWTChecks._result(
+                "Sensitive Claims",
+                "FAIL",
+                "HIGH",
+                f"Sensitive claims found: {', '.join(found)}",
+                "Do not store secrets inside JWTs."
+            )
+
+        return JWTChecks._result(
+            "Sensitive Claims",
+            "PASS",
+            "INFO",
+            "No sensitive claims detected.",
+            "No action required."
+        )
+    
+    @staticmethod
+    def check_privileged_token(payload: dict):
+
+        role = str(payload.get("role", "")).lower()
+
+        admin = payload.get("admin")
+
+        privileged_roles = {
+            "admin",
+            "administrator",
+            "root",
+            "superadmin",
+            "superuser"
+        }
+
+        if admin is True or role in privileged_roles:
+            return JWTChecks._result(
+                "Privileges",
+                "WARN",
+                "MEDIUM",
+                "Privileged token detected.",
+                "Review administrative tokens carefully."
+            )
+
+        return JWTChecks._result(
+            "Privileges",
+            "PASS",
+            "INFO",
+            "Standard user token.",
+            "No action required."
+        )
+    
+    @staticmethod
+    def check_token_lifetime(payload: dict):
+
+        exp = payload.get("exp")
+        iat = payload.get("iat")
+
+        if exp is None or iat is None:
+            return JWTChecks._result(
+                "Token Lifetime",
+                "WARN",
+                "LOW",
+                "Cannot calculate token lifetime.",
+                "Include both exp and iat claims."
+            )
+
+        lifetime = exp - iat
+
+        hours = lifetime / 3600
+
+        if hours > 24:
+            return JWTChecks._result(
+                "Token Lifetime",
+                "WARN",
+                "MEDIUM",
+                f"Token valid for {hours:.1f} hours.",
+                "Consider shorter expiration times."
+            )
+
+        return JWTChecks._result(
+            "Token Lifetime",
+            "PASS",
+            "INFO",
+            f"Token lifetime: {hours:.1f} hours.",
+            "No action required."
+        )
+    
+    @staticmethod
+    def check_token_size(token: str):
+
+        size = len(token.encode())
+
+        if size > 4096:
+            return JWTChecks._result(
+                "Token Size",
+                "FAIL",
+                "HIGH",
+                f"Token size is {size} bytes.",
+                "Reduce payload size."
+            )
+
+        if size > 2048:
+            return JWTChecks._result(
+                "Token Size",
+                "WARN",
+                "MEDIUM",
+                f"Large token ({size} bytes).",
+                "Consider reducing claims."
+            )
+
+        return JWTChecks._result(
+            "Token Size",
+            "PASS",
+            "INFO",
+            f"{size} bytes.",
+            "No action required."
+        )
