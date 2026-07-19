@@ -25,6 +25,8 @@ class JWTVerifier:
             return {
                 "status": "FAIL",
                 "name": "Signature",
+                "algorithm": algorithm,
+                "key_type": "Unknown",
                 "message": f"Unsupported algorithm: {algorithm}"
             }
 
@@ -40,8 +42,13 @@ class JWTVerifier:
                 "status": "PASS",
                 "name": "Signature",
                 "algorithm": algorithm,
+                "key_type": (
+                    "Shared Secret"
+                    if algorithm.startswith("HS")
+                    else "RSA Public Key"
+                ),
                 "message": f"Valid {algorithm} signature.",
-                "payload": payload
+                "payload": payload,
             }
 
         except jwt.ExpiredSignatureError:
@@ -49,6 +56,11 @@ class JWTVerifier:
                 "status": "FAIL",
                 "name": "Signature",
                 "algorithm": algorithm,
+                "key_type": (
+                    "Shared Secret"
+                    if algorithm.startswith("HS")
+                    else "RSA Public Key"
+                ),
                 "message": "Token has expired."
             }
 
@@ -57,6 +69,11 @@ class JWTVerifier:
                 "status": "FAIL",
                 "name": "Signature",
                 "algorithm": algorithm,
+                "key_type": (
+                    "Shared Secret"
+                    if algorithm.startswith("HS")
+                    else "RSA Public Key"
+                ),
                 "message": "Invalid signature."
             }
 
@@ -65,5 +82,10 @@ class JWTVerifier:
                 "status": "FAIL",
                 "name": "Signature",
                 "algorithm": algorithm,
+                "key_type": (
+                    "Shared Secret"
+                    if algorithm.startswith("HS")
+                    else "RSA Public Key"
+                ),
                 "message": str(e)
             }

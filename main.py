@@ -10,6 +10,8 @@ from analyzer.renderer import Renderer
 from analyzer.report import ReportGenerator
 from analyzer.utils import FileUtils
 from pathlib import Path
+from rich.panel import Panel
+from rich.table import Table
 
 
 console = Console()
@@ -62,14 +64,26 @@ def verify_jwt(token: str, secret: str):
 
     color = STATUS_COLORS[result["status"]]
 
+    table = Table.grid(padding=(0, 2))
+    table.add_column(style="cyan", justify="right")
+    table.add_column()
+
+    table.add_row("Algorithm", result["algorithm"])
+    table.add_row("Key Type", result["key_type"])
+    table.add_row("Status", f"[{color}]{result['status']}[/{color}]")
+    table.add_row("Message", result["message"])
+
     console.print(
-        f"[{color}]{result['status']:<5}[/{color}] "
-        f"{result['name']:<15} "
-        f"{result['message']}"
+        Panel(
+            table,
+            title="[bold]Signature Verification[/bold]",
+            border_style=color,
+        )
     )
 
     if result["status"] == "PASS":
-        console.print("\n[bold green]Verified Payload[/bold green]")
+        console.print()
+        console.print("[bold green]Verified Payload[/bold green]")
         console.print(JSON.from_data(result["payload"]))
 
 
