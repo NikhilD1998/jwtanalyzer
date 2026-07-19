@@ -2,7 +2,7 @@
 
 ## Security Score
 
-- **Score:** 45/100
+- **Score:** 55/100
 - **Risk:** HIGH
 
 ## Findings

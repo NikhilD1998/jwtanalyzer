@@ -8,6 +8,7 @@ from analyzer.verifier import JWTVerifier
 from analyzer.analyzer import JWTAnalyzer
 from analyzer.renderer import Renderer
 from analyzer.report import ReportGenerator
+from analyzer.utils import FileUtils
 
 console = Console()
 
@@ -86,9 +87,19 @@ def main():
         "decode",
         help="Decode a JWT"
     )
-    decode_parser.add_argument(
+    
+    group = decode_parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument(
         "token",
+        nargs="?",
         help="JWT Token"
+    )
+
+    group.add_argument(
+        "--file",
+        "-f",
+        help="Read JWT from file"
     )
 
     # Analyze
@@ -96,9 +107,19 @@ def main():
         "analyze",
         help="Analyze JWT security"
     )
-    analyze_parser.add_argument(
+    
+    group = analyze_parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument(
         "token",
+        nargs="?",
         help="JWT Token"
+    )
+
+    group.add_argument(
+        "--file",
+        "-f",
+        help="Read JWT from file"
     )
 
     analyze_parser.add_argument(
@@ -118,9 +139,19 @@ def main():
         "verify",
         help="Verify JWT Signature"
     )
-    verify_parser.add_argument(
+    
+    group = verify_parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument(
         "token",
+        nargs="?",
         help="JWT Token"
+    )
+
+    group.add_argument(
+        "--file",
+        "-f",
+        help="Read JWT from file"
     )
     verify_parser.add_argument(
         "--secret",
@@ -131,18 +162,25 @@ def main():
 
     args = parser.parse_args()
 
+    token = None
+
+    if hasattr(args, "file") and args.file:
+        token = FileUtils.read_token(args.file)
+    elif hasattr(args, "token"):
+        token = args.token
+
     if args.command == "decode":
-        decode_jwt(args.token)
+        decode_jwt(token)
 
     elif args.command == "analyze":
         analyze_jwt(
-            args.token,
+            token,
             json_file=args.json,
             md_file=args.md
         )
 
     elif args.command == "verify":
-        verify_jwt(args.token, args.secret)
+        verify_jwt(token, args.secret)
 
 
 if __name__ == "__main__":
