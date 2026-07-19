@@ -56,7 +56,7 @@ def verify_jwt(token: str, secret: str):
     """
     Verify JWT signature using an HS256 secret.
     """
-    result = JWTVerifier.verify_hs256(token, secret)
+    result = JWTVerifier.verify(token, secret)
 
     color = STATUS_COLORS[result["status"]]
 
