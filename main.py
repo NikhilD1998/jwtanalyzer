@@ -7,6 +7,7 @@ from analyzer.parser import JWTParser
 from analyzer.verifier import JWTVerifier
 from analyzer.analyzer import JWTAnalyzer
 from analyzer.renderer import Renderer
+from analyzer.report import ReportGenerator
 
 console = Console()
 
@@ -30,13 +31,21 @@ def decode_jwt(token: str):
         console.print(f"[red]{e}[/red]")
 
 
-def analyze_jwt(token: str):
+def analyze_jwt(token: str, json_file=None, md_file=None):
 
     try:
 
         result = JWTAnalyzer.analyze(token)
 
         Renderer().render(result)
+
+        if json_file:
+            ReportGenerator.export_json(result, json_file)
+            console.print(f"\n[green]JSON report saved to {json_file}[/green]")
+
+        if md_file:
+            ReportGenerator.export_markdown(result, md_file)
+            console.print(f"\n[green]Markdown report saved to {md_file}[/green]")
 
     except Exception as e:
         console.print(f"[red]{e}[/red]")
@@ -51,9 +60,9 @@ def verify_jwt(token: str, secret: str):
     color = STATUS_COLORS[result["status"]]
 
     console.print(
-        f"[{color}]{check['status']:<5}[/{color}] "
-        f"{check['name']:<15} "
-        f"{check['message']}"
+        f"[{color}]{result['status']:<5}[/{color}] "
+        f"{result['name']:<15} "
+        f"{result['message']}"
     )
 
     if result["status"] == "PASS":
@@ -92,6 +101,18 @@ def main():
         help="JWT Token"
     )
 
+    analyze_parser.add_argument(
+        "--json",
+        metavar="FILE",
+        help="Export analysis as JSON"
+    )
+
+    analyze_parser.add_argument(
+        "--md",
+        metavar="FILE",
+        help="Export analysis as Markdown"
+    )
+
     # Verify
     verify_parser = subparsers.add_parser(
         "verify",
@@ -114,7 +135,11 @@ def main():
         decode_jwt(args.token)
 
     elif args.command == "analyze":
-        analyze_jwt(args.token)
+        analyze_jwt(
+            args.token,
+            json_file=args.json,
+            md_file=args.md
+        )
 
     elif args.command == "verify":
         verify_jwt(args.token, args.secret)
