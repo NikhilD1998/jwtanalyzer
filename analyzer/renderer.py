@@ -14,9 +14,9 @@ class Renderer:
         self.render_header(result["header"])
         self.render_payload(result["payload"])
         self.render_checks(result["checks"])
+        self.render_score(result["security"])
+        self.render_findings(result["security"]["findings"])
 
-        if "security" in result:
-            self.render_score(result["security"])
 
     def render_header(self, header):
 
@@ -79,11 +79,43 @@ class Renderer:
         else:
             color = "red"
 
+        panel = f"""
+    Score      : {score}/100
+    Risk Level : {security['risk']}
+
+    Critical Findings : {security['summary']['CRITICAL']}
+    High Findings     : {security['summary']['HIGH']}
+    Medium Findings   : {security['summary']['MEDIUM']}
+    Low Findings      : {security['summary']['LOW']}
+    """
+
         self.console.print(
             Panel.fit(
-                f"[bold {color}]Score : {score}/100[/bold {color}]\n"
-                f"Risk  : {security['risk']}",
+                panel.strip(),
                 title="Security Score",
                 border_style=color
             )
         )
+
+    def render_findings(self, findings):
+
+        if not findings:
+            return
+
+        table = Table(title="Security Findings")
+
+        table.add_column("Check", style="cyan")
+        table.add_column("Severity", style="red")
+        table.add_column("Issue")
+        table.add_column("Recommendation", style="green")
+
+        for finding in findings:
+
+            table.add_row(
+                finding["name"],
+                finding["severity"],
+                finding["message"],
+                finding["recommendation"]
+            )
+
+        self.console.print(table)

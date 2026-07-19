@@ -1,14 +1,17 @@
 from analyzer.parser import JWTParser
 from analyzer.checks import JWTChecks
+from analyzer.scorer import JWTScorer
 
 
 class JWTAnalyzer:
 
     @staticmethod
     def analyze(token: str):
+
         header, payload = JWTParser.decode(token)
 
         checks = [
+
             JWTChecks.check_algorithm(header),
             JWTChecks.check_type(header),
 
@@ -25,10 +28,14 @@ class JWTAnalyzer:
             JWTChecks.check_sensitive_claims(payload),
             JWTChecks.check_privileged_token(payload),
             JWTChecks.check_token_lifetime(payload),
+
         ]
+
+        security = JWTScorer.calculate(checks)
 
         return {
             "header": header,
             "payload": payload,
             "checks": checks,
+            "security": security
         }

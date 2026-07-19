@@ -1,16 +1,39 @@
 class JWTScorer:
 
+    SEVERITY_SCORES = {
+        "CRITICAL": 50,
+        "HIGH": 25,
+        "MEDIUM": 10,
+        "LOW": 5,
+        "INFO": 0
+    }
+
     @staticmethod
     def calculate(checks):
+
         score = 100
+
+        summary = {
+            "CRITICAL": 0,
+            "HIGH": 0,
+            "MEDIUM": 0,
+            "LOW": 0,
+            "INFO": 0
+        }
+
+        findings = []
 
         for check in checks:
 
-            if check["status"] == "FAIL":
-                score -= 25
+            severity = check["severity"]
 
-            elif check["status"] == "WARN":
-                score -= 10
+            if check["status"] != "PASS":
+
+                score -= JWTScorer.SEVERITY_SCORES[severity]
+
+                summary[severity] += 1
+
+                findings.append(check)
 
         score = max(score, 0)
 
@@ -20,7 +43,7 @@ class JWTScorer:
         elif score >= 70:
             risk = "MEDIUM"
 
-        elif score >= 50:
+        elif score >= 40:
             risk = "HIGH"
 
         else:
@@ -28,5 +51,7 @@ class JWTScorer:
 
         return {
             "score": score,
-            "risk": risk
+            "risk": risk,
+            "summary": summary,
+            "findings": findings
         }
